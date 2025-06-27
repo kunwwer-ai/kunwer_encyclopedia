@@ -4,3 +4,4 @@ beautifulsoup4
 openai
 streamlit-option-menu
 newspaper3k
+lxml
