@@ -1,5 +1,7 @@
 import streamlit as st
 import json, os, glob
+import pyarrow  # Required for Streamlit custom components
+
 
 from dashboard_layout import apply_dashboard_layout
 
