@@ -93,10 +93,20 @@ elif selected == "Social Media":
             image_url = post.get("image_url")
 
             with st.expander(f"{platform}: {title}"):
-                if image_url and image_url.startswith("http"):
-                    st.image(image_url, use_container_width=True)
+                # ✅ Validate image URL or path
+                if isinstance(image_url, str) and image_url.strip():
+                    if image_url.startswith("http"):
+                        try:
+                            st.image(image_url, use_container_width=True)
+                        except Exception:
+                            st.warning("🖼️ Failed to load image from URL.")
+                    elif os.path.exists(image_url):
+                        st.image(image_url, use_container_width=True)
+                    else:
+                        st.caption(f"🖼️ Image not found: `{image_url}`")
                 else:
                     st.info("No image available.")
+
                 st.markdown(f"**📆 Posted on:** {posted_on}")
                 st.markdown(content)
                 if url:

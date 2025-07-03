@@ -45,3 +45,4 @@ def show_biography_section(bio_data):
 
                     if not displayed:
                         st.warning(f"🖼️ Image not found or unreadable: `{image_path}`")
+ 
