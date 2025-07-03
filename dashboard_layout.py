@@ -23,7 +23,7 @@ def apply_dashboard_layout():
             [
                 "Overview", "Biography", "YouTube", "Articles",
                 "Books", "News", "Social Media",
-                "Real-Time Scraper"  # ✅ Added new tab
+                "Real-Time Scraper" , "Web"  # ✅ Added new tab
             ],
             icons=[
                 "bar-chart-line", "person", "youtube", "file-earmark-text",

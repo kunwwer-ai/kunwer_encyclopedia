@@ -17,6 +17,8 @@ def search_youtube_videos(query, max_results=50):
         "q": query,
         "type": "video",
         "maxResults": 50,
+        "relevanceLanguage": "hi",       # Optional: focus on Hindi content
+        "safeSearch": "strict",          # Optional: filter inappropriate content
         "key": YOUTUBE_API_KEY
     }
 
@@ -29,8 +31,9 @@ def search_youtube_videos(query, max_results=50):
             break
 
         for item in data.get("items", []):
-            video_id = item["id"]["videoId"]
-            videos.append(video_id)
+            video_id = item["id"].get("videoId")
+            if video_id:
+                videos.append(video_id)
 
         if "nextPageToken" in data and len(videos) < max_results:
             params["pageToken"] = data["nextPageToken"]
@@ -39,7 +42,7 @@ def search_youtube_videos(query, max_results=50):
 
     return videos[:max_results]
 
-def fetch_video_details(video_ids):
+def fetch_video_details(video_ids, match_title: str = None):
     results = []
     for i in range(0, len(video_ids), 50):
         chunk = video_ids[i:i+50]
@@ -55,6 +58,10 @@ def fetch_video_details(video_ids):
         for item in data.get("items", []):
             snippet = item["snippet"]
             stats = item.get("statistics", {})
+            title = snippet.get("title", "").lower()
+            if match_title and match_title.lower() not in title:
+                continue  # Skip irrelevant videos
+
             results.append({
                 "video_id": item["id"],
                 "title": snippet.get("title"),
@@ -69,36 +76,30 @@ def fetch_video_details(video_ids):
     return results
 
 def main():
-    query = input("🔍 Enter search keyword for user (e.g., Kunwer Sachdev | Su-Kam | Suvastika): ").strip()
-    max_videos = input("🎯 Enter max number of videos to fetch: ").strip()
+    query = input("🔍 Enter search keyword (e.g., Manohar Lal Khattar): ").strip()
+    max_videos = input("🎯 Max number of videos to fetch (default 50): ").strip()
 
     try:
         max_videos = int(max_videos)
     except ValueError:
-        print("❌ Invalid number. Using default: 50")
+        print("⚠️ Invalid input. Using default: 50")
         max_videos = 50
 
     print(f"\n🔎 Searching YouTube for: '{query}'...")
     video_ids = search_youtube_videos(query, max_results=max_videos)
-    print(f"✅ Found {len(video_ids)} videos.")
+    print(f"✅ Found {len(video_ids)} videos. Now filtering titles...")
 
-    if not video_ids:
-        print("⚠️ No videos found. Try a different search query.")
-        return
-
-    print("📥 Fetching video details...")
-    results = fetch_video_details(video_ids)
+    results = fetch_video_details(video_ids, match_title=query)
+    print(f"🎯 {len(results)} videos match the title filter: '{query}'")
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-    
-    # ✅ Make query safe for filenames
     safe_query = re.sub(r'[^\w\-_.]', '_', query)
     out_file = f"youtube_data_about_{safe_query}_{timestamp}.json"
 
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
-    print(f"\n💾 Saved {len(results)} video records to: {out_file}")
+    print(f"\n💾 Saved filtered data to: {out_file}")
 
 if __name__ == "__main__":
     main()
