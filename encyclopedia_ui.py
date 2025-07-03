@@ -2,7 +2,6 @@ import streamlit as st
 import json, os, glob
 import pyarrow  # Required for Streamlit custom components
 
-
 from dashboard_layout import apply_dashboard_layout
 
 # Section Modules
@@ -11,32 +10,28 @@ from components.books_section import show_books_section
 from components.biography_section import show_biography_section
 from components.articles_section import show_articles_section
 from components.news_section import show_news_section
-
-from components.realtime_scraper import show_realtime_scraper
-
+from components.web_section import show_web_section  # ✅ New section added
 
 # ── Layout and Navigation ───────────────────────────────────────
 selected = apply_dashboard_layout()
 
 # ── Load latest JSON from correct folder ────────────────────────
 def load_latest_json(prefix: str):
-    # Folder routing based on prefix
     folder_map = {
         "news_about_": "news_output",
         "articles_data_about_": "",
         "biography_data_about_": "",
-        "social_data_about_": "scraped_data"
+        "social_data_about_": "scraped_data",
+        "web_data_about_": "outputs"
     }
     folder = folder_map.get(prefix, ".")
-
-    # Get JSON files matching the prefix
     files = sorted(glob.glob(os.path.join(folder, f"{prefix}*.json")), reverse=True)
 
-    # Prefer file with 'kuwar' or 'kunwer' in the name
-    special = next((f for f in files if "kuwar" in f.lower() or "kunwer" in f.lower()), None)
+    # Prefer LinkedIn JSON if exists, else look for "kuwar"/"kunwer", else fallback to latest
+    special = next((f for f in files if "linkedin" in f.lower()), None)
+    special = special or next((f for f in files if "kuwar" in f.lower() or "kunwer" in f.lower()), None)
     path = special or (files[0] if files else None)
 
-    # Load the file if it exists
     if path and os.path.exists(path):
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -74,7 +69,7 @@ elif selected == "Biography":
     show_biography_section(load_latest_json("biography_data_about_"))
 
 elif selected == "YouTube":
-    show_youtube_section(load_latest_json)
+    show_youtube_section(load_latest_json("social_data_about_"))
 
 elif selected == "Articles":
     show_articles_section(load_latest_json("articles_data_about_"))
@@ -83,21 +78,32 @@ elif selected == "Books":
     show_books_section()
 
 elif selected == "News":
-    news_data = load_latest_json("news_about_")
-    show_news_section(news_data)
+    show_news_section(load_latest_json("news_about_"))
 
 elif selected == "Social Media":
     st.markdown("### 🌐 <span style='color:#2e86de;'>Social Media Activity</span>", unsafe_allow_html=True)
     social_data = load_latest_json("social_data_about_")
+
     if social_data:
-        for post in social_data:
-            with st.expander(post.get("platform", "Unknown") + ": " + post.get("title", "Untitled")):
-                st.write(f"**📆 Posted on:** {post.get('date', 'Unknown')}")
-                st.write(post.get("content", "No content available."))
-                if post.get("link"):
-                    st.markdown(f"[🔗 View Post]({post['link']})")
+        for post in social_data.get("posts", []):
+            platform = str(post.get("platform") or "Unknown")
+            title = str(post.get("title") or "Untitled")
+            content = str(post.get("content") or "No content available.")
+            posted_on = post.get("posted_on", "Unknown")
+            url = post.get("url")
+            image_url = post.get("image_url")
+
+            with st.expander(f"{platform}: {title}"):
+                if image_url and image_url.startswith("http"):
+                    st.image(image_url, use_container_width=True)
+                else:
+                    st.info("No image available.")
+                st.markdown(f"**📆 Posted on:** {posted_on}")
+                st.markdown(content)
+                if url:
+                    st.markdown(f"[🔗 View Post]({url})")
     else:
         st.info("No social media posts available.")
 
-elif selected == "Real-Time Scraper":
-    show_realtime_scraper()
+elif selected == "Web":
+    show_web_section()
