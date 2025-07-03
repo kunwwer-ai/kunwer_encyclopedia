@@ -28,9 +28,21 @@ def show_biography_section(bio_data):
                     images = [section["image"]]
 
                 for image_path in images:
+                    # Handle full URL images
                     if image_path.startswith("http"):
                         st.image(image_path, use_container_width=True)
-                    elif os.path.exists(image_path):
-                        st.image(image_path, use_container_width=True)
                     else:
-                        st.caption(f"🖼️ Image not found: `{image_path}`")
+                        # Try both direct path and fallback to ./images/
+                        possible_paths = [
+                            image_path,
+                            os.path.join("images", os.path.basename(image_path))
+                        ]
+
+                        loaded = False
+                        for path in possible_paths:
+                            if os.path.exists(path):
+                                st.image(path, use_container_width=True)
+                                loaded = True
+                                break
+                        if not loaded:
+                            st.caption(f"🖼️ Image not found: `{image_path}`")
