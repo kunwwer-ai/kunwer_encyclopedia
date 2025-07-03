@@ -17,7 +17,7 @@ def show_biography_section(bio_data):
                 unsafe_allow_html=True
             )
             
-            col1, col2 = st.columns([3, 1])  # Main text left, image right
+            col1, col2 = st.columns([3, 1])
 
             with col1:
                 st.markdown(section["text"])
@@ -28,7 +28,9 @@ def show_biography_section(bio_data):
                     images = [section["image"]]
 
                 for image_path in images:
-                    if os.path.exists(image_path):
+                    if image_path.startswith("http"):
+                        st.image(image_path, use_container_width=True)
+                    elif os.path.exists(image_path):
                         st.image(image_path, use_container_width=True)
                     else:
                         st.caption(f"🖼️ Image not found: `{image_path}`")
