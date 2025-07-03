@@ -23,5 +23,5 @@ def show_articles_section(articles_data):
             st.markdown(f"📄 **Snippet Preview:** {snippet}")
 
             if content:
-                with st.expander("📖 Show Full Extracted Text"):
-                    st.markdown(content)
+                st.markdown("**📖 Full Extracted Text:**")
+                st.markdown(content)
