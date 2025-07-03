@@ -10,7 +10,7 @@ from components.books_section import show_books_section
 from components.biography_section import show_biography_section
 from components.articles_section import show_articles_section
 from components.news_section import show_news_section
-from components.web_section import show_web_section  # ✅ New section added
+from components.web_section import show_web_section
 
 # ── Layout and Navigation ───────────────────────────────────────
 selected = apply_dashboard_layout()
@@ -27,7 +27,6 @@ def load_latest_json(prefix: str):
     folder = folder_map.get(prefix, ".")
     files = sorted(glob.glob(os.path.join(folder, f"{prefix}*.json")), reverse=True)
 
-    # Prefer LinkedIn JSON if exists, else look for "kuwar"/"kunwer", else fallback to latest
     special = next((f for f in files if "linkedin" in f.lower()), None)
     special = special or next((f for f in files if "kuwar" in f.lower() or "kunwer" in f.lower()), None)
     path = special or (files[0] if files else None)
@@ -40,7 +39,7 @@ def load_latest_json(prefix: str):
             st.error(f"❌ Failed to load {path}: {e}")
     else:
         st.warning(f"⚠️ No data found for prefix {prefix} in {folder}/.")
-    return []
+    return {}
 
 # ── Route by tab ────────────────────────────────────────────────
 if selected == "Overview":
